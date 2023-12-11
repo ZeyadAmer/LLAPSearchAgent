@@ -1,0 +1,49 @@
+The problem we have is of a town, and this town has a prosperity level which is an indication of how well its people are doing. The town needs resources to be able to build new buildings which will increase prosperity, the resources include food, materials, and energy. The search agent is required to find a plan to make the town's prosperity level reach 100. The plan is a sequence of actions where the actions could be requestfood, requestmaterials, request energy, wait, build1 or build2. Each action affects prosperity and resources in a different way. The initial problem budget is 100000 that can be sent, the resources stored at the town at any time is limited to 50 units per resource.
+
+Our search tree node class included the attributes
+State state
+Object of type state, which its constructor takes in a string as input which is a string defining the following attributes to form the problem logic and actions
+Initial Prosperity, Initial Food , Initial Materials, Initial Energy, Unit Price Food, Unit Price Materials, Unit Price Energy, Amount Request Food, Delay Request Food, Amount Request Materials, Delay Request Materials, Amount Request Energy, Delay Request Energy, price BUILD1, food Use BUILD1, Materials Use BUILD1, Energy Use BUILD1, Prosperity BUILD1, Price BUILD2, Food Use BUILD2, Materials Use BUILD2, Energy Use BUILD2, Prosperity BUILD2
+It also has the attributes budget which is initially set to 100000 and money spent which is initially 0 to keep track of the money spent in the sequence of actions, current delay which is an int set to 0 to keep track of the arrival of the resource and on the way keeps is of type resource enum which could be either none, food, materials or energy to track of the resource that is on its way.
+The constructor parser the inputted string into each attributes and sets it so it can be used and there are getters and setter for each attribute to be able to access the node attributes.
+Node parentNode
+Refers to the parent of the node.
+ActionEnum operator
+Enum is made to keep track of the operator of this node. The action could be one of the following RequestFood, RequestMaterials, RequestEnergy, WAIT, BUILD1, BUILD2, root. The root action is made for the root node as it will not have an action and as to not leave it as null.
+Int depth
+The depth of this node.
+Double cost
+Path cost until this node.
+Double heuristic1
+The calculated value of heuristic 1 for the first greedy search.
+Double heuristic2
+The calculated value of heuristic 2 for the second greedy search.
+Double AS1
+The calculated value of cost path + heuristic 1 value for the first A* search.
+Double AS2
+The calculated value of cost path + heuristic 2 value for the second A* search.
+Double CostMin
+The minimum cost of all actions in the problem, used in the path cost calculation.
+
+Double ProsperityMax
+The maximum increase of prosperity per action, used in the heuristic calculation.
+String avoidRepeat
+String made to avoid the creation of repeated states.
+
+Next our search problem implementation is a class called Generic Search which has attributes nodes expanded an int keeping track of number of nodes expanded, monetary cost int keeping track of money spent and a string plan to keep the sequence of actions taken in the search, lastly the solution. These are all used to help the visualising process.
+The class has 8 functions implementing the search problems (BF , DF, ID, UC, GR1 , GR2 , AS1, AS2) according to the logic of each. Theres also 4 more functions for sorting the queues of the greedy and a\* search algorithms based on heuristic1, heuristic2, AS1 and AS2. Another function we have is encodeState which takes an object state and encodes it from a state to a string in the same format the state object takes a state and decodes it, this is done in order to create a new state for the children nodes with the updated values. We also have a function isStringInList that takes a hashset of strings and a string, the purpose of this function is to check if the state we have has been created before or not in order to avoid creating repeated state nodes as they will result in the same children which we don't have to search again. Lastly the operation function which takes a node and checks the operation of the node ( one of the operations in the action enum). If the action is root it doesnt do anything, the action is request food will set the delay and the money spent and the initial energy, food and materials according to the logic. It does the same for the request materials and request energy also according to the logic. If the action is build1 or build2 it ill also set them all in addition to increasing the prosperity according to the builds effect on the prosperity. This is all we have in this class.
+
+Moving on to the LLAP search class which extends generic search, the class has one function which is solve as defined in the assignment. The function takes a string representing the initial state which we decode, strategy which specifies which search strategy to apply, and visualise a boolean to either print or not print during the search algorithm. Inside the function we create an instance of the LLAP search and create the root state using the initial state string. Next we create a new node using the state created, null parent, action root, and depth 0. We then create a queue and stack which will be passed to the function of the search strategy, all search strategies utilise a queue except for DF which uses a stack. We then condition of the strategy and call the search strategy accordingly using the queue/stack and the visualise boolean. This method will return the result that is returned from each strategy function.
+
+The main functions we implemented are in the generic search class, wich consist of a function for each strategy we have.
+The first search algorithm we have is the breadth first search, the function takes a queue of types node and boolean visualise, and the queue it takes is initialised having only one node which is the root. We first create a hashset of type string called repeated list where we store the states we have so we can disregard any repeated state. We loop on our tree (queue) while its not empty, inside our loop we dequeue our node to expand it, we check on our current delay int to check if we should update one of the resources and act accordingly. If the delay is 1 and the resource on its way is food we will update the value of the food and so on. We will then perform the current operation of this node to update our state based on the action it has. After updating the state we will compare our state against the states in the hashset. If its repeated we dont create children for this node. We then check if the resources reach zero or the money spent reaches 100000 we will also not create children. Finally if the prosperity is 100 or more we wont create children and we will set the final node to this node and break the loop. If we passed these conditions then we will create children and go on. If we are currently delayed and waiting for a resource we will only create 3 children for this node either wait or one of the builds. If not we will create the 5 nodes of the 5 actions we have. And we add all the children to the queue. Since the queue is a first in first out it handles the order of the nodes we want to expand. When the try is empty we return that we have no solution since this means we have expanded all nodes. During all actions done we check on the boolean visualise and if its true we print accordingly.
+
+The next search algorithm we have is the depth first algorithm which takes a stack unlike the bfs, it functions in the same way the bfs does but instead of expanding in the order of a queue we expand in the order of a stack and this handles expanding each depth one level at a time.
+
+For the iterative deepening algorithm we used a queue and we had an int current depth initialised with 0 and as we expand we check against the nodes depth if the depth of the node is = to current depth we expand and create the children of this node, based on conditions i previously mentioned in bf they all apply to all algorithms, if its not equal we dequeue and enqueue. The algorithm will go as follows, it will dequeue the root and check against current depth and since they are equal it will expand it and then enqueue it and increment our depth. We then dequeue it again and since our depth is now 1 we will create children for the root and enqueue them, they will also be expanded but we won't create children for them and then enqueue them again. We now have the root and the root children in our queue, we will keep repeating this by expanding root and the children and since our depth is now 2 will create children for the children and so on.
+
+Next the uniform cost algorithm, we already know that the wait and request have a cost of zero so we push them both first in the children, we then condition o n the cost of both builds and push them in order of the lowest cost. We only need to order the children as the cost is cumulative and wont be less than my parents cost so its handled on it own.
+
+The greedy and A\* algorithm are both implemented in a very similar way where we still use a queue but we have 4 functions to sort this queue based on the values of heuristic1, heuristic2, as1 , and as2. After expanding each node we call the function on the queue to sort it and have the least cost/cost+heuristic expanded next. The cost path that we used was the price of the action of the node. And The first heuristic we used is the cost of node - min cost / max cost - min cost, The second heuristic we used was cost of node - min cost / max cost.
+
+In the test class I added methods to calculate the CPU utilisation and ram usage and called it in each test case in all algorithms.
